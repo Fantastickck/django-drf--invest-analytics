@@ -14,11 +14,13 @@ class Asset(models.Model):
     currency = models.ForeignKey(
         Currency, on_delete=models.CASCADE, verbose_name='Валюта')
     sector = models.ForeignKey(
-        Sector, on_delete=models.SET_NULL, null=True, verbose_name='Сектор')
+        Sector, on_delete=models.SET_NULL, null=True, verbose_name='Сектор', blank=True)
     country = models.ForeignKey(
-        Country, on_delete=models.SET_NULL, null=True, verbose_name='Страна')
+        Country, on_delete=models.SET_NULL, null=True, verbose_name='Страна', blank=True)
     market = models.ForeignKey(
-        Market, on_delete=models.SET_NULL, null=True, verbose_name='Биржа')
+        Market, on_delete=models.SET_NULL, null=True, verbose_name='Биржа', blank=True)
+    last_price = models.DecimalField(
+        max_digits=20, decimal_places=6, verbose_name='Текущая цена')
 
     class Meta:
         verbose_name = 'Актив'

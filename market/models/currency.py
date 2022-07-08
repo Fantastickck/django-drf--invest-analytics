@@ -11,4 +11,4 @@ class Currency(models.Model):
         verbose_name_plural = 'Валюты'
 
     def __str__(self):
-        return f'{self.name} | {self.abbreviation}'
+        return self.abbreviation
