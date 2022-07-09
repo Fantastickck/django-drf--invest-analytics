@@ -3,7 +3,9 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('app/', include('app.urls')),
-    path('market/', include('market.urls'))
+    path(r'admin/', admin.site.urls),
+    path(r'app/', include('app.urls')),
+    path(r'market/', include('market.urls')),
+    path('__debug__/', include('debug_toolbar.urls')),
+
 ]
