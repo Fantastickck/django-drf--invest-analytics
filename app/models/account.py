@@ -12,7 +12,7 @@ class Account(models.Model):
         verbose_name_plural = 'Счета'
 
     def __str__(self):
-        return f'{self.user.username} | {self.name}'
+        return f'{self.id} | {self.user}'
 
 
 class AccountHistoricalModel(models.Model):
@@ -26,11 +26,12 @@ class AccountHistoricalModel(models.Model):
     total_amount = models.DecimalField(
         max_digits=20, decimal_places=6, verbose_name='Общая стоимость')
     total_profit = models.DecimalField(
-        max_digits=20, decimal_places=6, verbose_name='Общая')
+        max_digits=20, decimal_places=6, verbose_name='Общая прибыль')
 
     class Meta:
         verbose_name = 'Состояние'
         verbose_name_plural = 'Состояния'
+        ordering = ['date']
 
     def __str__(self):
-        return f'{self.account} | {self.date}'
+        return f'{self.account.id} | {self.date}'

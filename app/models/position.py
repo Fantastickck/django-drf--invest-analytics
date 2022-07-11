@@ -10,7 +10,7 @@ class Position(models.Model):
     asset = models.ForeignKey(
         Asset, on_delete=models.CASCADE, related_name='positions', verbose_name='Актив')
     avg_price = models.DecimalField(
-        max_digits=16, decimal_places=6, verbose_name='Цена')
+        max_digits=16, decimal_places=6, verbose_name='Средняя цена')
     quantity = models.PositiveIntegerField(verbose_name='Количество')
 
     class Meta:

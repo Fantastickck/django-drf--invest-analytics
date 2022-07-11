@@ -22,7 +22,7 @@ class Operation(models.Model):
     account = models.ForeignKey(
         Account, on_delete=models.CASCADE, related_name='operations', verbose_name='Счет')
     price = models.DecimalField(
-        max_digits=20, decimal_places=6, verbose_name='Цена')
+        max_digits=20, decimal_places=6, verbose_name='Средняя цена')
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     commission = models.DecimalField(
         max_digits=12, decimal_places=6, default=0, verbose_name='Комиссия')
