@@ -5,6 +5,7 @@ from django.contrib import admin
 from .models import (
     Asset,
     Currency,
+    CurrencyCourse,
     TypeAsset,
     Sector,
     Country,
@@ -29,6 +30,11 @@ class AssetAdmin(admin.ModelAdmin):
 class CurrencyAdmin(admin.ModelAdmin):
     list_display = ('abbreviation', 'name', 'symbol')
     list_display_links = ('abbreviation',)
+
+
+@admin.register(CurrencyCourse)
+class CurrencyCourseAdmin(admin.ModelAdmin):
+    list_display = ('id', 'currency_from', 'currency_to', 'value')
 
 
 @admin.register(Country)
