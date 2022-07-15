@@ -12,6 +12,8 @@ class Position(models.Model):
     avg_price = models.DecimalField(
         max_digits=16, decimal_places=6, verbose_name='Средняя цена')
     quantity = models.PositiveIntegerField(verbose_name='Количество')
+    commission = models.DecimalField(
+        max_digits=16, decimal_places=6, verbose_name='Комиссии', default=0)
 
     class Meta:
         verbose_name = 'Позиция'
