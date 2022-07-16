@@ -15,8 +15,10 @@ from .models import (
 
 @admin.register(Asset)
 class AssetAdmin(admin.ModelAdmin):
-    list_display = ('ticker', 'name', 'type_asset',
-        'currency', 'sector', 'country', 'market', 'last_price_quantize')
+    list_display = (
+        'ticker', 'name', 'type_asset',
+        'currency', 'sector', 'country', 
+        'market', 'last_price_quantize')
     list_display_links = ('ticker',)
 
     @admin.display()
@@ -28,7 +30,7 @@ class AssetAdmin(admin.ModelAdmin):
 
 @admin.register(Currency)
 class CurrencyAdmin(admin.ModelAdmin):
-    list_display = ('abbreviation', 'name', 'symbol')
+    list_display = ('abbreviation', 'type_currency', 'name', 'symbol')
     list_display_links = ('abbreviation',)
 
 

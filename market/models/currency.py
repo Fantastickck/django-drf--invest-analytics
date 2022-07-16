@@ -2,8 +2,8 @@ from django.db import models
 
 
 CURRENCY_TYPE = (
-    ('Валюта', 'CURRENCY'),
-    ('Криптовалюта', 'CRYPTOCURRENCY')
+    ('CURRENCY', 'Обычная валюта'),
+    ('CRYPTOCURRENCY', 'Криптовалюта')
 )
 
 
