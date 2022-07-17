@@ -31,9 +31,9 @@ class CurrencyPosition(models.Model):
         Account, on_delete=models.CASCADE,
         related_name='currency_positions', verbose_name='Счет')
     currency = models.ForeignKey(
-        Currency, 
-        on_delete=models.CASCADE, 
-        related_name='positions', 
+        Currency,
+        on_delete=models.CASCADE,
+        related_name='positions',
         verbose_name='Валюта')
     quantity = models.DecimalField(
         max_digits=16, decimal_places=6, verbose_name='Количество')
