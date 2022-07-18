@@ -83,8 +83,19 @@ class AccountTests(APITestCase):
         response_1 = self.client.get(reverse('detail_account', kwargs={'pk': self.account_1.pk}))
         """Account with positions."""
         response_2 = self.client.get(reverse('detail_account', kwargs={'pk': self.account_2.pk}))
+        """Account does not exist."""
+        response_3 = self.client.get(reverse('detail_account', kwargs={'pk': 0}))
         self.assertEqual(response_1.status_code, status.HTTP_200_OK)
         self.assertEqual(response_2.status_code, status.HTTP_200_OK)
+        self.assertEqual(response_3.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_account(self):
+        data = {
+            'name': 'account_3',
+            'user': self.user.pk
+        }
+        response = self.client.post('/api/v1/accounts/', data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_account_detail_data(self):
         """With course of USD/RUB = 60"""
@@ -159,10 +170,14 @@ class AccountTests(APITestCase):
         self.assertEqual(data_rub, expected_data_rub)
         self.assertEqual(data_usd, expected_data_usd)
 
-    def test_get_account_detail_wrong_pk(self):
-        response = self.client.get(reverse('detail_account', kwargs={'pk': 0}))
-        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
-
     def test_get_account_detail_wrong_currency(self):
         response = self.client.get('/api/v1/accounts/1/?currency=_')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_create_account_wrong_user_pk(self):
+        data = {
+            'name': 'account_3',
+            'user': 0
+        }
+        response = self.client.post('/api/v1/accounts/', data)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
