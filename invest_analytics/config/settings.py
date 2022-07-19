@@ -118,7 +118,10 @@ STATIC_URL = 'static/'
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
-ALLOWED_HOSTS = ['0.0.0.0']
+ALLOWED_HOSTS = [
+    '0.0.0.0',
+    '127.0.0.1',
+]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -129,3 +132,12 @@ INTERNAL_IPS = [
 if DEBUG:
     import mimetypes
     mimetypes.add_type("application/javascript", ".js", True)
+
+REDIS_HOST = '0.0.0.0'
+REDIS_PORT = '6379'
+CELERY_BROKER_URL = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_BROKER_TRANSPORT_OPTIONS = {'visibility_timeout': 3600}
+CELERY_RESULT_BACKEND = 'redis://' + REDIS_HOST + ':' + REDIS_PORT + '/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
