@@ -6,7 +6,7 @@ django.setup()
 
 from market.models.currency import Currency
 
-def load_currencies():
+def load_currencies() -> None:
     with Client(settings.TINVEST_TOKEN) as client:
         currencies = client.instruments.currencies().instruments
         for currency in currencies:
@@ -16,7 +16,6 @@ def load_currencies():
                 print(ticker, '--CREATED')
             except:
                 print(ticker, '--ALREADY EXIST')
-
 
 
 if __name__ == '__main__':

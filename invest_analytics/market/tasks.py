@@ -1,66 +1,57 @@
-import os
 from decimal import Decimal
 
-from celery import shared_task
 from tinkoff.invest import Client
 
+from config.celery import app
+from config import settings
 
-from config import settings 
 import django
 django.setup()
-from market.models.currency import Currency, CurrencyCourse
+
+from market.models.currency import (
+    Currency, 
+)
+from market.services_tasks.currency import (
+    get_course,
+    get_usd_figi,
+    update_courses,
+    update_usd_rub_courses
+)
 
 
-def get_usd_figi(client):
-    currencies = client.instruments.currencies().instruments
-    for currency in currencies:
-        if currency.name == 'Доллар США':
-            return currency.figi
-
-
-def get_course(obj, nominal):
-    price = obj.last_prices[0].price
-    units = str(price.units)
-    nano = str(price.nano)
-    course = Decimal(f'{units}.{nano}')
-    return course/nominal
-
-
-@shared_task
-def get_currency_courses():
+@app.task
+def update_currency_courses() -> None:
+    """Update courses for all currencies."""
+    currency_rub = Currency.objects.get(abbreviation='RUB')
+    currency_usd = Currency.objects.get(abbreviation='USD')
     with Client(settings.TINVEST_TOKEN) as client:
         usd_figi = get_usd_figi(client)
-        usd_rub = get_course(client.market_data.get_last_prices(figi=[usd_figi]), nominal=1)
-        currency_rub = Currency.objects.get(abbreviation='RUB')
-        currency_usd = Currency.objects.get(abbreviation='USD')
+        usd_rub = get_course(client.market_data.get_last_prices(
+            figi=[usd_figi]), nominal=1)
         currencies = client.instruments.currencies().instruments
         for currency in currencies:
             if 'RUB' in currency.ticker:
-                currency_figi = currency.figi
-                last_price = client.market_data.get_last_prices(figi=[currency_figi])
+                last_price = client.market_data.get_last_prices(
+                    figi=[currency.figi])
                 nominal = currency.nominal.units
                 course_to_rub = get_course(last_price, nominal)
                 if course_to_rub != 0.0:
-                    course_to_usd = course_to_rub/usd_rub
+                    course_to_usd = Decimal(course_to_rub/usd_rub)
                     ticker = currency.ticker[0:3]
                     currency_from = Currency.objects.get(abbreviation=ticker)
-                    ticker_rub = CurrencyCourse.objects.get_or_create(
-                        currency_from=currency_from, 
-                        currency_to=currency_rub, 
-                    )[0]
-                    ticker_rub.value =course_to_rub
-                    ticker_rub.save()
-                    ticker_usd = CurrencyCourse.objects.get_or_create(
+                    update_courses(
                         currency_from=currency_from,
-                        currency_to=currency_usd,
-                    )[0]
-                    ticker_usd.value = course_to_usd
-                    ticker_usd.save()
-    print('UPDATED CURRENCY COURSES')
-                    # print(currency.name, currency.ticker)
-                    # print(f'\t{ticker}/RUB: {course_to_rub}' )
-                    # print(f'\t{ticker}/USD: {course_to_usd}')
+                        currency_rub=currency_rub,
+                        currency_usd=currency_usd,
+                        course_to_rub=course_to_rub,
+                        course_to_usd=course_to_usd
+                    )
+    update_usd_rub_courses(
+        usd_rub,
+        currency_rub=currency_rub,
+        currency_usd=currency_usd
+    )
 
 
 if __name__ == '__main__':
-    get_currency_courses()
+    update_currency_courses()

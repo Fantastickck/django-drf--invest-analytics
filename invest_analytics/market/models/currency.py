@@ -33,7 +33,7 @@ class CurrencyCourse(models.Model):
         verbose_name='В валюту')
     value = models.DecimalField(
         max_digits=20, 
-        decimal_places=6, 
+        decimal_places=10, 
         default=0.0,
         verbose_name='Курс')
 
