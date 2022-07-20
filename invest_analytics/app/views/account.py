@@ -21,18 +21,28 @@ class AccountListView(generics.ListCreateAPIView):
 
 class AccountDetailView(views.APIView):
     def get(self, request, pk):
-        calc_currency = request.GET.get('currency', 'RUB').upper()
-        if calc_currency not in ('RUB', 'USD'):
-            return Response({'detail': 'Currency for view not found'}, status=status.HTTP_404_NOT_FOUND)
-        currency_to = get_object_or_404(Currency, abbreviation=calc_currency)
+        calc_currency_abbr = request.GET.get('currency', 'RUB').upper()
+        if calc_currency_abbr not in ('RUB', 'USD'):
+            return Response(
+                {'detail': 'Currency for view not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        calc_currency = get_object_or_404(
+            Currency.objects
+            .prefetch_related('currencies_to__currency_from'),
+            abbreviation=calc_currency_abbr
+        )
         currency_courses = {}
-        for course in currency_to.currencies_to.all():
+        for course in calc_currency.currencies_to.all():
             currency_courses[course.currency_from] = course.value
-        account = get_object_or_404(Account.objects.select_related('user').prefetch_related(
-            'positions', 'operations'
-        ), pk=pk)
+        account = get_object_or_404(
+            Account.objects
+            .select_related('user')
+            .prefetch_related('positions', 'operations'),
+            pk=pk
+        )
         serializer = AccountDetailSerializer(account, context={
-            'currency': currency_to,
+            'currency': calc_currency,
             'currency_courses': currency_courses
         })
         data = serializer.data

@@ -5,9 +5,6 @@ from tinkoff.invest import Client
 from config.celery import app
 from config import settings
 
-import django
-django.setup()
-
 from market.models.currency import (
     Currency, 
 )
@@ -51,7 +48,3 @@ def update_currency_courses() -> None:
         currency_rub=currency_rub,
         currency_usd=currency_usd
     )
-
-
-if __name__ == '__main__':
-    update_currency_courses()
