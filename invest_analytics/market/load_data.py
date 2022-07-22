@@ -13,3 +13,6 @@ def load_currencies() -> None:
                 abbreviation=ticker, 
                 defaults={'name': currency.name, 'type_currency': 'CURRENCY'}
             )
+
+def load_asset() -> None:
+    pass
