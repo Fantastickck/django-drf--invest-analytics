@@ -75,26 +75,26 @@ class AccountTests(APITestCase):
             
 
     def test_get_accounts_list(self):
-        response = self.client.get(reverse('list_accounts'))
+        response = self.client.get(reverse('account_list'))
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
     def test_get_account_detail_status_codes(self):
         """Account without positions."""
-        response_1 = self.client.get(reverse('detail_account', kwargs={'pk': self.account_1.pk}))
+        response_1 = self.client.get(reverse('account_detail', kwargs={'pk': self.account_1.pk}))
         """Account with positions."""
-        response_2 = self.client.get(reverse('detail_account', kwargs={'pk': self.account_2.pk}))
+        response_2 = self.client.get(reverse('account_detail', kwargs={'pk': self.account_2.pk}))
         """Account does not exist."""
-        response_3 = self.client.get(reverse('detail_account', kwargs={'pk': 0}))
+        response_3 = self.client.get(reverse('account_detail', kwargs={'pk': 0}))
         self.assertEqual(response_1.status_code, status.HTTP_200_OK)
         self.assertEqual(response_2.status_code, status.HTTP_200_OK)
         self.assertEqual(response_3.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_account(self):
-        data = {
+        payload = {
             'name': 'account_3',
             'user': self.user.pk
         }
-        response = self.client.post('/api/v1/accounts/', data)
+        response = self.client.post('/api/v1/accounts/', payload)
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_get_account_detail_data(self):
