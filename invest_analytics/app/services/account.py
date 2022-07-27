@@ -9,11 +9,25 @@ def get_result_currency_position(obj, obj_attr, currency_to, currency_courses):
     return Decimal(obj_attr * course)
 
 
-def get_total_amount(data):
-    total_amount = 0
-    for position in data['positions']:
-        total_amount += position['current_amount']
-    return total_amount
+def get_total_invested(obj, currency):
+    asset_invested = sum(
+        position.get_invested(currency) for position in obj.positions.all()
+    )
+    # currency_invested = sum(
+    #     position.get(currency) for position in obj.currency_positions.all()
+    # )
+    return Decimal(asset_invested).quantize(Decimal('0.00'))
+
+
+def get_total_amount(obj, currency, courses):
+    asset_amount = sum(
+        position.get_current_amount(currency, courses)*position.quantity
+        for position in obj.positions.all()
+    )
+    # currency_amount = sum(
+    #     position.get_currenct_amount(currency) for position in obj.currency_positions.all()
+    # )
+    return Decimal(asset_amount).quantize(Decimal('0.00'))
 
 
 def get_total_profit(data):

@@ -11,6 +11,17 @@ class Account(models.Model):
         verbose_name = 'Счет'
         verbose_name_plural = 'Счета'
 
+    def get_total_amount(self, currency, courses):
+        asset_amount = sum(
+            position.get_current_amount(currency, courses)*position.quantity 
+            for position in self.positions.all()
+        )
+        # currency_amount = sum(
+        #     position.get_currenct_amount(currency) for position in self.currency_positions.all()
+        # )
+        return asset_amount
+
+
     def __str__(self):
         return f'{self.id} | {self.user}'
 

@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import generics, views, status
 from rest_framework.response import Response
@@ -9,8 +10,7 @@ from market.models.currency import Currency
 
 from app.services.account import (
     get_total_amount,
-    get_total_profit,
-    get_total_profit_percent
+    get_total_invested,
 )
 
 
@@ -21,10 +21,10 @@ class AccountListView(generics.ListCreateAPIView):
 
 class AccountDetailView(views.APIView):
     def get(self, request, pk):
-        calc_currency_abbr = request.GET.get('currency', 'RUB').upper()
+        calc_currency_abbr = request.GET.get('currency').upper()
         if calc_currency_abbr not in ('RUB', 'USD'):
             return Response(
-                {'detail': 'Currency for view not found'},
+                {'detail': 'Wrong currency'},
                 status=status.HTTP_404_NOT_FOUND
             )
         calc_currency = get_object_or_404(
@@ -38,15 +38,18 @@ class AccountDetailView(views.APIView):
         account = get_object_or_404(
             Account.objects
             .select_related('user')
-            .prefetch_related('positions', 'operations'),
+            .prefetch_related(
+                'positions',  
+                'positions__asset__currency'            
+            ),
             pk=pk
         )
+        total_invested = get_total_invested(account, calc_currency)
+        total_amount = get_total_amount(account, calc_currency, currency_courses)
         serializer = AccountDetailSerializer(account, context={
             'currency': calc_currency,
-            'currency_courses': currency_courses
+            'currency_courses': currency_courses,
+            'total_invested': total_invested,
+            'total_amount': total_amount
         })
-        data = serializer.data
-        data['total_amount'] = get_total_amount(data)
-        data['total_profit'] = get_total_profit(data)
-        data['total_profit_percent'] = get_total_profit_percent(data)
-        return Response(data)
+        return Response(serializer.data)

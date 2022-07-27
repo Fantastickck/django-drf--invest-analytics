@@ -1,4 +1,5 @@
 from django.db import models
+from app.services.account import get_result_currency_position
 
 from market.models.asset import Asset
 from market.models.currency import Currency
@@ -21,6 +22,20 @@ class Position(models.Model):
     class Meta:
         verbose_name = 'Позиция'
         verbose_name_plural = 'Позиции'
+
+    def get_invested(self, currency):
+        if currency.abbreviation == 'USD':
+            return self.avg_price_usd * self.quantity
+        return self.avg_price_rub * self.quantity
+
+    def get_current_amount(self, currency, courses):
+        last_price = get_result_currency_position(
+            self, 
+            self.asset.last_price, 
+            currency_to=currency,
+            currency_courses=courses
+        )
+        return last_price
 
     def __str__(self):
         return f'{self.account.user.username} | {self.account.name} | {self.asset.name}'

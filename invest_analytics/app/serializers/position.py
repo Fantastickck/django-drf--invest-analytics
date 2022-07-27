@@ -19,21 +19,41 @@ class AssetPositionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Asset
-        fields = ('id', 'name', 'ticker', 'last_price', 'type_asset',
-                  'currency', 'sector', 'country', 'last_price')
+        fields = (
+            'id', 
+            'name', 
+            'ticker', 
+            'last_price', 
+            'type_asset',
+            'currency', 
+            'sector', 
+            'country', 
+            'last_price'
+        )
 
 
 class PositionSerializer(serializers.ModelSerializer):
     asset = AssetPositionSerializer()
-    avg_price = serializers.SerializerMethodField('get_avg_price')
-    profit = serializers.SerializerMethodField('get_profit')
-    profit_percent = serializers.SerializerMethodField('get_profit_percent')
-    invested = serializers.SerializerMethodField('get_invested')
-    current_amount = serializers.SerializerMethodField('get_current_amount')
+    avg_price = serializers.SerializerMethodField()
+    profit = serializers.SerializerMethodField()
+    profit_percent = serializers.SerializerMethodField()
+    invested = serializers.SerializerMethodField()
+    current_amount = serializers.SerializerMethodField()
+    share_whole_account = serializers.SerializerMethodField()
 
     class Meta:
         model = Position
-        fields = ('id', 'asset', 'avg_price', 'profit', 'profit_percent', 'invested', 'current_amount', 'quantity')
+        fields = (
+            'id', 
+            'asset', 
+            'avg_price', 
+            'profit', 
+            'profit_percent', 
+            'invested', 
+            'current_amount', 
+            'quantity',
+            'share_whole_account'
+        )
 
     def get_avg_price(self, position):
         if self.context.get('currency').abbreviation == 'USD':
@@ -50,19 +70,38 @@ class PositionSerializer(serializers.ModelSerializer):
         return avg_price
 
     def get_invested(self, position):
-        invested = Decimal(self.context['avg_price'] * position.quantity)
-        return invested
+        result = Decimal(self.context['avg_price'] * position.quantity)
+        return result
 
     def get_current_amount(self, position):
-        current_amount = Decimal(
-            self.context['last_price'] * position.quantity).quantize(Decimal('0.00'))
-        return current_amount
+        result = Decimal(
+            self.context['last_price'] * position.quantity)\
+            .quantize(Decimal('0.00')
+        )
+        return result
 
     def get_profit(self, position):
-        profit = Decimal((self.context['last_price'] - self.context['avg_price']) 
-        * position.quantity).quantize(Decimal('0.00'))
-        return profit
+        result = Decimal(
+            (self.context['last_price'] - self.context['avg_price'])
+            * position.quantity).quantize(Decimal('0.00'))
+        return result
 
     def get_profit_percent(self, position):
-        return Decimal(100 * (self.context['last_price'] - self.context['avg_price']) 
-        / self.context['avg_price']).quantize(Decimal('0.00'))
+        last_price = self.context.get('last_price')
+        avg_price = self.context.get('avg_price')
+        try: 
+            result = Decimal(100 * (last_price - avg_price) 
+                / avg_price).quantize(Decimal('0.00'))
+        except:
+            result = 0
+        return result
+
+    def get_share_whole_account(self, position):
+        current_amount = self.get_current_amount(position)
+        total_amount = self.context.get('total_amount')
+        try:
+            result = Decimal(current_amount / total_amount * 100)\
+                .quantize(Decimal('0.00'))
+        except:
+            result = 0
+        return result

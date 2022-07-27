@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from rest_framework import serializers
 
 from app.models.account import Account
@@ -19,22 +21,48 @@ class AccountDetailSerializer(serializers.ModelSerializer):
     and counting about financial results.
     """
 
+    calculated_currency = serializers.SerializerMethodField()
+    total_invested = serializers.SerializerMethodField()
+    total_amount = serializers.SerializerMethodField()
+    total_profit = serializers.SerializerMethodField()
+    total_profit_percent = serializers.SerializerMethodField()
     positions = serializers.SerializerMethodField('get_positions_serializer')
-    total_invested = serializers.SerializerMethodField('get_total_invested')
-    total_profit = serializers.DecimalField(
-        max_digits=20, decimal_places=6, required=False)
-    calculated_currency = serializers.SerializerMethodField('get_calc_currency')
 
     class Meta:
         model = Account
-        fields = '__all__'
+        fields = (
+            'id',
+            'name', 
+            'user', 
+            'calculated_currency',
+            'total_invested',
+            'total_amount',
+            'total_profit',
+            'total_profit_percent',
+            'positions'
+        )
+
+    def get_calculated_currency(self, account):
+        return self.context.get('currency').abbreviation
 
     def get_total_invested(self, account):
-        total_invested = sum([position['invested'] for position in self.context['position_data']])
-        return total_invested
-        
-    def get_calc_currency(self, account):
-        return self.context.get('currency').abbreviation
+        return self.context.get('total_invested')
+
+    def get_total_amount(self, account):
+        return self.context.get('total_amount')
+    
+    def get_total_profit(self, account):
+        return self.context.get('total_amount') \
+            - self.context.get('total_invested')
+
+    def get_total_profit_percent(self, account):
+        total_amount = self.context.get('total_amount')
+        total_invested = self.context.get('total_invested')
+        try:
+            return Decimal(100 * ((total_amount) - total_invested) \
+                    / total_invested).quantize(Decimal('0.00'))
+        except:
+            return 0
         
     def get_positions_serializer(self, account):
         """
@@ -44,7 +72,8 @@ class AccountDetailSerializer(serializers.ModelSerializer):
         """
         serializer_context = {
             'currency': self.context.get('currency'),
-            'currency_courses': self.context.get('currency_courses')
+            'currency_courses': self.context.get('currency_courses'),
+            'total_amount': self.context.get('total_amount'),
         }
         positions = Position.objects.filter(account=account).prefetch_related(
             'asset',
@@ -54,5 +83,4 @@ class AccountDetailSerializer(serializers.ModelSerializer):
             'asset__country',
         )
         serializer = PositionSerializer(positions, many=True, context=serializer_context)
-        self.context['position_data'] = serializer.data
         return serializer.data

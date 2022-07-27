@@ -29,8 +29,16 @@ class AccountTests(APITestCase):
             type_currency='CURRENCY', 
             abbreviation='RUB', 
             symbol='#')
-        CurrencyCourse.objects.create(currency_from=self.currency_usd, currency_to=self.currency_rub, value=60)
-        CurrencyCourse.objects.create(currency_from=self.currency_rub, currency_to=self.currency_usd, value=0.016667)
+        CurrencyCourse.objects.create(
+            currency_from=self.currency_usd, 
+            currency_to=self.currency_rub, 
+            value=60
+        )
+        CurrencyCourse.objects.create(
+            currency_from=self.currency_rub, 
+            currency_to=self.currency_usd, 
+            value=0.016667
+        )
         type_asset = TypeAsset.objects.create(name='Stock')
         sector_it = Sector.objects.create(name='Информационные технологии')
         sector_fin = Sector.objects.create(name='Финансы')
@@ -80,11 +88,11 @@ class AccountTests(APITestCase):
 
     def test_get_account_detail_status_codes(self):
         """Account without positions."""
-        response_1 = self.client.get(reverse('account_detail', kwargs={'pk': self.account_1.pk}))
+        response_1 = self.client.get(f'/api/v1/accounts/{self.account_1.pk}/?currency=RUB')
         """Account with positions."""
-        response_2 = self.client.get(reverse('account_detail', kwargs={'pk': self.account_2.pk}))
+        response_2 = self.client.get(f'/api/v1/accounts/{self.account_2.pk}/?currency=RUB')
         """Account does not exist."""
-        response_3 = self.client.get(reverse('account_detail', kwargs={'pk': 0}))
+        response_3 = self.client.get(f'/api/v1/accounts/0/?currency=RUB')
         self.assertEqual(response_1.status_code, status.HTTP_200_OK)
         self.assertEqual(response_2.status_code, status.HTTP_200_OK)
         self.assertEqual(response_3.status_code, status.HTTP_404_NOT_FOUND)
@@ -105,6 +113,13 @@ class AccountTests(APITestCase):
         data_usd = response_usd.json()
         expected_data_rub = {
             "id": self.account_2.pk,
+            "name": "Test_2",
+            "user": self.user.pk,
+            "calculated_currency": "RUB",
+            "total_invested": 38610.0,
+            "total_amount": 44200.0,
+            "total_profit": 5590.0,
+            "total_profit_percent": 14.48,
             "positions": [
                 {
                     "id": self.position_1.pk,
@@ -114,7 +129,8 @@ class AccountTests(APITestCase):
                     "profit_percent": 16.36,
                     "invested": 24750.0,
                     "current_amount": 28800.0,
-                    "quantity": 3
+                    "quantity": 3,
+                    "share_whole_account": 65.16
                 },
                 {
                     "id": self.position_2.pk,
@@ -125,18 +141,19 @@ class AccountTests(APITestCase):
                     "invested": 13860.0,
                     "current_amount": 15400.0,
                     "quantity": 110,
+                    "share_whole_account": 34.84
                 }
             ],
-            "total_invested": 38610.0,
-            "calculated_currency": "RUB",
-            "name": "Test_2",
-            "user": self.user.pk,
-            "total_amount": 44200.0,
-            "total_profit": 5590.0,
-            "total_profit_percent": 14.48
         }
         expected_data_usd = {
             "id": self.account_2.pk,
+            "name": "Test_2",
+            "user": self.user.pk,
+            "calculated_currency": "USD",
+            "total_invested": 727.2,
+            "total_amount": 736.67,
+            "total_profit": 9.47,
+            "total_profit_percent": 1.3,
             "positions": [
                 {
                     "id": self.position_1.pk,
@@ -146,7 +163,8 @@ class AccountTests(APITestCase):
                     "profit_percent": 6.67,
                     "invested": 450.0,
                     "current_amount": 480.0,
-                    "quantity": 3
+                    "quantity": 3,
+                    "share_whole_account": 65.16
                 },
                 {
                     "id": self.position_2.pk,
@@ -157,15 +175,9 @@ class AccountTests(APITestCase):
                     "invested": 277.2,
                     "current_amount": 256.67,
                     "quantity": 110,
+                    "share_whole_account": 34.84
                 }
             ],
-            "total_invested": 727.2,
-            "calculated_currency": "USD",
-            "name": "Test_2",
-            "user": self.user.pk,
-            "total_amount": 736.67,
-            "total_profit": 9.47,
-            "total_profit_percent": 1.3
         }
         self.assertEqual(data_rub, expected_data_rub)
         self.assertEqual(data_usd, expected_data_usd)
